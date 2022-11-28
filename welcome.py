@@ -6,7 +6,7 @@ import configparser
 group_ids = dict() 
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('config.ini',encoding='utf-8')
 
 def on_message(ws:WebSocketApp,msg):
     msg = json.loads(msg)
@@ -25,7 +25,7 @@ def on_message(ws:WebSocketApp,msg):
         head_img = msg.get('data', {}).get('headImg','')
         group_id = group_ids.get(wxid,'')
         group_ids.pop(wxid)
-        welcome = config.get(group_id)
+        welcome = config.options(group_id)
         if welcome:
             title = config.get(group_id,title).replace('%nickname%',nickname) or '欢迎加入群聊'
             content = config.get(group_id,content).replace('%nickname%',nickname) or ''
