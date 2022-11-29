@@ -12,7 +12,8 @@ def on_message(ws:WebSocketApp,msg):
     msg = json.loads(msg)
     if msg.get('method') == 'chatroommemberAdd':
         group_id = msg.get('data', {}).get('wxid')
-        group_ids.setdefault(member_id,group_id)
+        group_name = msg.get('data', {}).get('myName')
+        group_ids.setdefault(member_id,''.join([group_id,group_name]))
         member_id = msg.get('data', {}).get('member', [{}])[0].get('wxid','')
         data = json.dumps({
         "method": "getUserInfo",
@@ -20,13 +21,13 @@ def on_message(ws:WebSocketApp,msg):
         })
         ws.send(data)
     elif msg.get('method', '') == 'getUserInfo_Recv':
-        wxid = msg.msg.get('data', {}).get('wxid','')
+        wxid = msg.get('data', {}).get('wxid','')
         nickname = msg.get('data', {}).get('nickName','')
         head_img = msg.get('data', {}).get('headImg','')
-        group_id = group_ids.get(wxid,'')
-        group_ids.pop(wxid)
-        welcome = config.options(group_id)
-        if welcome:
+        group_info = group_ids.pop(wxid)
+        groups = config.sections()
+        welcomes = [group for group in groups if group in group_info]
+        for group_id in welcomes:
             title = config.get(group_id,title).replace('%nickname%',nickname) or '欢迎加入群聊'
             content = config.get(group_id,content).replace('%nickname%',nickname) or ''
             title = config.get(group_id,url) or head_img
